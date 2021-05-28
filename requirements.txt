@@ -2,3 +2,5 @@ fastapi
 gunicorn
 pydantic
 uvicorn
+uvloop
+httptools
