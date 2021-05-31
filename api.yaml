@@ -1,0 +1,623 @@
+components:
+  schemas:
+    Error:
+      properties:
+        error:
+          type: string
+          example: The specified resource was not found
+    LoginBody:
+      properties:
+        password:
+          example: P4$$w0rd!
+          type: string
+        username:
+          example: myuser
+          type: string
+    PaginatedResult:
+      properties:
+        next:
+          type: string
+          example: /api/v1/source?page=2&per_page=50
+        pages:
+          type: integer
+          example: 1
+          minimum: 1
+        total:
+          type: integer
+          example: 1
+          minimum: 1
+    EventSuccess:
+      properties:
+        success:
+          type: string
+          enum:
+            - true
+            - false
+    Event:
+      properties:
+        ip_address:
+          example: 127.0.0.1
+          pattern: '^\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}$'
+          type: string
+        namespace:
+          type: string
+          example: network.am4.production.leaf.management
+          pattern: '^([a-z0-9]+\.?)*$'
+        operation:
+          type: string
+          enum:
+            - add
+            - remove
+            - retire
+        type:
+          type: string
+          enum:
+            - host
+            - webendpoint
+            - azuresubscription
+            - database
+            - container
+            - network
+            - ipaddress
+        timestamp:
+          type: integer
+          example: 1617914365
+          minimum: 1617914365
+        metadata:
+          type: object
+          example:
+            type: new
+            category: network
+        catalog_entry:
+          type: string
+          example: routing
+          minLength: 1
+          maxLength: 40
+        owner:
+          type: string
+          example: github/network
+          minLength: 1
+          maxLength: 40
+        lifetime:
+          type: integer
+          example: 86400
+          minimum: 1
+          maximum: 31622400
+      type: object
+    User:
+      properties:
+        id:
+          example: 1
+          type: integer
+        state:
+          type: string
+          enum:
+            - active
+            - inactive
+        username:
+          type: string
+          example: network-yaml
+          minLength: 1
+          maxLength: 40
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/Sources'
+        created_at:
+          format: date-time
+          type: string
+        modified_at:
+          format: date-time
+          type: string
+      type: object
+    Sources:
+      properties:
+        source:
+          type: string
+          example: network-yaml
+      type: object
+    Source:
+      properties:
+        id:
+          example: 1
+          type: integer
+        state:
+          type: string
+          enum:
+            - active
+            - inactive
+        name:
+          type: string
+          example: network-yaml
+          minLength: 1
+          maxLength: 40
+        catalog_entry:
+          type: string
+          example: routing
+          minLength: 1
+          maxLength: 40
+        owner:
+          type: string
+          example: github/network
+          minLength: 1
+          maxLength: 40
+        username:
+          type: string
+          example: network
+          minLength: 1
+          maxLength: 40
+        created_at:
+          format: date-time
+          type: string
+        modified_at:
+          format: date-time
+          type: string
+      type: object
+  securitySchemes:
+    jwt:
+      bearerFormat: JWT
+      scheme: bearer
+      type: http
+  parameters:
+    name:
+      in: path
+      required: true
+      name: name
+      schema:
+        type: string
+        example: network-yaml
+        minLength: 1
+        maxLength: 40
+    username:
+      in: path
+      required: true
+      name: username
+      schema:
+        type: string
+        example: network
+        minLength: 1
+        maxLength: 40
+    Authorization:
+      in: header
+      name: Authorization
+      required: true
+      schema:
+        type: string
+        example: >-
+          AZYloasdfasoy10635061021adsf01610610561065lkflasfjfas060660060152lhhhlasdfhafhdlAHHKLHLLLH
+        minLength: 1
+        maxLength: 255
+    ip_address:
+      in: query
+      name: ip_address
+      required: false
+      schema:
+        type: string
+        example: 127.0.0.1
+        minLength: 1
+        maxLength: 15
+        maximum: 1
+    source:
+      in: query
+      name: source
+      required: false
+      schema:
+        type: string
+        example: network
+        minLength: 1
+        maxLength: 50
+    namespace:
+      in: query
+      name: namespace
+      required: false
+      schema:
+        type: string
+        example: network.am4.production
+        minLength: 1
+        maxLength: 50
+        maximum: 1
+    type:
+      in: query
+      name: type
+      required: false
+      schema:
+        type: string
+        example: host
+        enum:
+          - host
+          - webendpoint
+          - azuresubscription
+          - database
+          - container
+          - network
+          - ipaddress
+        minLength: 1
+        maxLength: 15
+        maximum: 1
+    operation:
+      in: query
+      name: operation
+      required: false
+      schema:
+        type: string
+        enum:
+          - add
+          - remove
+          - retire
+        example: add
+        minLength: 1
+        maxLength: 15
+        maximum: 1
+info:
+  title: ghinventory
+  version: 0.0.1
+  description: GitHub IP Inventory
+openapi: 3.0.3
+security:
+  - jwt: []
+servers:
+  - url: 'https://apimock.microsoft.com/uy2gus'
+    description: Mock server
+paths:
+  /auth/login:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginBody'
+      responses:
+        '200':
+          description: Login endpoint
+          content:
+            application/json:
+              schema:
+                properties:
+                  access_token:
+                    example: myaccesstoken
+                    type: string
+                  refresh_token:
+                    example: myrefreshtoken
+                    type: string
+                type: object
+        '400':
+          description: bad request
+      security: []
+      tags:
+        - Auth
+  /auth/refresh:
+    post:
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+      responses:
+        '200':
+          description: Refresh token endpoints
+          content:
+            application/json:
+              schema:
+                properties:
+                  access_token:
+                    example: myaccesstoken
+                    type: string
+                type: object
+        '400':
+          description: bad request
+        '401':
+          description: unauthorized
+      tags:
+        - Auth
+  /auth/revoke_access:
+    delete:
+      responses:
+        '200':
+          description: Revoke access token
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    example: token revoked
+                    type: string
+                type: object
+        '400':
+          description: bad request
+        '401':
+          description: unauthorized
+      tags:
+        - Auth
+  /auth/revoke_refresh:
+    delete:
+      responses:
+        '200':
+          description: Revoke refresh token
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    example: token revoked
+                    type: string
+                type: object
+        '400':
+          description: bad request
+        '401':
+          description: unauthorized
+      tags:
+        - Auth
+  /api/v1/user:
+    summary: User provisioned in systems
+    get:
+      summary: Get a list of users provisioned
+      description: This lists all users(s) defined in the system
+      responses:
+        '200':
+          description: Return sources
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResult'
+                  - properties:
+                      results:
+                        items:
+                          $ref: '#/components/schemas/User'
+              example:
+                next: /api/v1/user?page=2&per_page=50
+                pages: 1
+                total: 1
+                results:
+                  - id: 1
+                    state: active
+                    username: sally
+                    sources:
+                      - source: network-yaml
+                      - source: npm
+                    created_at: '2021-04-09T04:26:21.047Z'
+                    modified_at: '2021-04-09T04:26:21.047Z'
+        '500':
+          description: Unspecified Error
+      tags:
+        - User
+  '/api/v1/user/{username}':
+    summary: Get user by username
+    get:
+      summary: Get user by username
+      description: Get user by username defined in the system
+      parameters:
+        - $ref: '#/components/parameters/username'
+      responses:
+        '200':
+          description: Return user
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - properties:
+                      result:
+                        $ref: '#/components/schemas/User'
+              example:
+                result:
+                  id: 1
+                  state: active
+                  username: bob
+                  sources:
+                    - source: network
+                    - source: somethingelsetoo
+                  created_at: '2021-04-09T03:46:07.885Z'
+                  modified_at: '2021-04-09T03:46:07.885Z'
+        '404':
+          description: The resource or user was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unspecified Error
+      tags:
+        - User
+  /api/v1/source:
+    summary: Sources configured in the inventory system
+    get:
+      summary: Get a list of sources
+      description: This lists all source(s) defined in the system
+      responses:
+        '200':
+          description: Return sources
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResult'
+                  - properties:
+                      results:
+                        items:
+                          $ref: '#/components/schemas/Source'
+              example:
+                next: /api/v1/user?page=2&per_page=50
+                pages: 1
+                total: 1
+                results:
+                  - id: 1
+                    state: active
+                    name: network-yaml
+                    catalog_entry: routing
+                    owner: github/network
+                    username: bob
+                    created_at: '2021-04-09T04:26:21.047Z'
+                    modified_at: '2021-04-09T04:26:21.047Z'
+                  - id: 2
+                    state: active
+                    name: npm
+                    catalog_entry: routing
+                    owner: github/network
+                    username: bob
+                    created_at: '2021-04-09T04:26:21.047Z'
+                    modified_at: '2021-04-09T04:26:21.047Z'
+        '500':
+          description: Unspecified Error
+      tags:
+        - Source
+  '/api/v1/source/{name}':
+    summary: Get source by name
+    get:
+      summary: Get source by name
+      description: Get source by ID defined in the system
+      parameters:
+        - $ref: '#/components/parameters/name'
+      responses:
+        '200':
+          description: Return source
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - properties:
+                      result:
+                        $ref: '#/components/schemas/Source'
+              example:
+                result:
+                  id: 1
+                  state: active
+                  name: network-yaml
+                  catalog_entry: routing
+                  owner: github/network
+                  username: network
+                  created_at: '2021-04-09T04:58:43.216Z'
+                  modified_at: '2021-04-09T04:58:43.216Z'
+        '404':
+          description: The resource was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unspecified Error
+      tags:
+        - Source
+  '/api/v1/source/{name}/event':
+    summary: 'Send event to source by {name} for persistance to Kusto'
+    post:
+      summary: 'Send event to source by {name} for persistance to Kusto'
+      description: This endpoint exposes storage of an ip inventory event
+      parameters:
+        - $ref: '#/components/parameters/name'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Event'
+      responses:
+        '200':
+          description: Return sources
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - properties:
+                      result:
+                        $ref: '#/components/schemas/EventSuccess'
+              example:
+                result:
+                  success: true
+        '404':
+          description: The resource was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unspecified Error
+      tags:
+        - Source
+  '/api/v1/source/{name}/search':
+    summary: Search against a source
+    get:
+      summary: Search against a source
+      description: Search against a source
+      parameters:
+        - $ref: '#/components/parameters/name'
+        - $ref: '#/components/parameters/ip_address'
+        - $ref: '#/components/parameters/namespace'
+        - $ref: '#/components/parameters/operation'
+        - $ref: '#/components/parameters/type'
+      responses:
+        '200':
+          description: Return search results
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResult'
+                  - properties:
+                      results:
+                        items:
+                          $ref: '#/components/schemas/Event'
+              example:
+                next: /api/v1/source/network-yaml/search?page=2&per_page=50
+                pages: 1
+                total: 1
+                results:
+                  - ip_address: 127.0.0.1
+                    namespace: network.am4.production.leaf.management
+                    operation": add
+                    type: host
+                    timestamp: 1617914365
+                    metadata:
+                      type: new
+                      category: network
+                    catalog_entry: routing
+                    owner: github/network
+                    lifetime: 86400
+        '404':
+          description: The resource was not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Unspecified Error
+      tags:
+        - Source
+  /api/v1/search:
+    summary: Search Kusto based on query parameters
+    get:
+      summary: Search Kusto based on query parameters
+      description: Search Kusto based on query parameters
+      parameters:
+        - $ref: '#/components/parameters/ip_address'
+        - $ref: '#/components/parameters/namespace'
+        - $ref: '#/components/parameters/operation'
+        - $ref: '#/components/parameters/type'
+        - $ref: '#/components/parameters/source'
+      responses:
+        '200':
+          description: Return search results
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResult'
+                  - properties:
+                      results:
+                        items:
+                          $ref: '#/components/schemas/Event'
+              example:
+                next: /api/v1/search?page=2&per_page=50
+                pages: 1
+                total: 1
+                results:
+                  - ip_address: 127.0.0.1
+                    namespace: network.am4.production.leaf.management
+                    operation: add
+                    type: host
+                    timestamp: 1617914365
+                    metadata:
+                      type: new
+                      category: network
+                    catalog_entry: routing
+                    owner: github/network
+                    lifetime: 86400
+        '500':
+          description: Unspecified Error
+      tags:
+        - Search
