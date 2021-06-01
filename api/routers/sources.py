@@ -49,7 +49,8 @@ async def save_source_event_by_name(request: Request,
 
     try:
         evdata = EventData(json.dumps(data_dict))
-        await request.app.evhub_client.send_batch([evdata])
+        async with request.app.evhub_client:
+            await request.app.evhub_client.send_batch([evdata])
     except ValueError:  # Size exceeds limit. This shouldn't happen if you make sure before hand.
         err_msg = "Size of the event data list exceeds the size limit of a single send"
     except EventHubError as eh_err:
