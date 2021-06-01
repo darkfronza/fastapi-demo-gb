@@ -5,6 +5,7 @@ chardet
 click
 fastapi
 h11
+httptools
 idna
 pydantic
 requests
