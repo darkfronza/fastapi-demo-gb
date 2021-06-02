@@ -5,7 +5,6 @@ from fastapi import APIRouter, Request
 from typing import Any, Optional
 from pydantic import constr
 from ..models import Event
-from ..evhub_client import get_async_client
 
 from azure.eventhub import EventData
 from azure.eventhub.exceptions import EventHubError
@@ -48,7 +47,7 @@ async def save_source_event_by_name(
 
     try:
         evdata = EventData(json.dumps(data_dict))
-        async with get_async_client() as cl:
+        async with request.app.evhub_client as cl:
             await cl.send_batch([evdata])
         # async with request.app.evhub_client:
         #     await request.app.evhub_client.send_batch([evdata])
