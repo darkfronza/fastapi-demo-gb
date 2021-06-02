@@ -24,4 +24,4 @@ async def get_async_client():
     except Exception:
         print(traceback.format_exc(), file=sys.stderr)
     finally:
-        client.close()
+        await client.close()
