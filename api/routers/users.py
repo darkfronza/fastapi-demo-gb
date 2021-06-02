@@ -10,7 +10,7 @@ def get_user() -> Any:
     """
     Get a list of users provisioned
     """
-    return {} 
+    return {}
 
 
 @router.get("/user/{username}", response_model=Any)

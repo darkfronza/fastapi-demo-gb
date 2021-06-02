@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Response
+from fastapi import APIRouter
 from typing import Optional
 from pydantic import constr
 

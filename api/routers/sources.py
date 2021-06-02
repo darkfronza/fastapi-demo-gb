@@ -1,12 +1,11 @@
 import json
-import sys
 import traceback
 
 from fastapi import APIRouter, Request
 from typing import Any, Optional
 from pydantic import constr
 from ..models import Event
-from ..evhub_client import EventHubClient
+from ..evhub_client import get_async_client
 
 from azure.eventhub import EventData
 from azure.eventhub.exceptions import EventHubError
@@ -19,7 +18,7 @@ router = APIRouter()
 def get_sources() -> Any:
     """
     Get a list of sources
-    """    
+    """
     return {"sources": []}
 
 
@@ -32,8 +31,8 @@ def get_source_by_name(name: constr(min_length=1, max_length=40)) -> Any:
 
 
 @router.post("/source/{name}/event", response_model=Any)
-async def save_source_event_by_name(request: Request,
-    name: constr(min_length=1, max_length=40), body: Event = None
+async def save_source_event_by_name(
+    request: Request, name: constr(min_length=1, max_length=40), body: Event = None
 ) -> Any:
     """
     Send event to source by {name} for persistance to Kusto
@@ -49,20 +48,20 @@ async def save_source_event_by_name(request: Request,
 
     try:
         evdata = EventData(json.dumps(data_dict))
-        with request.app.evhub_client:
-            request.app.evhub_client.send_batch([evdata])
+        async with get_async_client() as cl:
+            await cl.send_batch([evdata])
         # async with request.app.evhub_client:
         #     await request.app.evhub_client.send_batch([evdata])
     except ValueError:  # Size exceeds limit. This shouldn't happen if you make sure before hand.
         err_msg = "Size of the event data list exceeds the size limit of a single send"
     except EventHubError as eh_err:
-        err_msg= "Sending error: {}".format(eh_err)
+        err_msg = "Sending error: {}".format(eh_err)
     except Exception:
         err_msg = traceback.format_exc()
 
     if err_msg:
         return {"error": err_msg}
-    
+
     return {"result": "ok"}
 
 
